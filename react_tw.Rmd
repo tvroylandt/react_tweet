@@ -1,0 +1,95 @@
+---
+title: "Reactable of tweets"
+author: "Thomas Vroylandt"
+date: "06/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(reactable)
+```
+
+## Create list of tweets
+
+```{r}
+df_tweets <- tibble(
+  status_id = c(
+    "1277217703447625729",
+    "1277167323355512834",
+    "1277157898322350080",
+    "1277052902553468928",
+    "1277035023388962816",
+    "1276997180042199040",
+    "1276984707524280320",
+    "1276685428263923712",
+    "1276555771808022529",
+    "1276550466118340613",
+    "1276542516142227462",
+    "1276187978566709248",
+    "1276178523997319170",
+    "1275944963944177665",
+    "1275839835589263361",
+    "1275739319010054144",
+    "1275562890238595073",
+    "1275464139713007619",
+    "1275301536432828418",
+    "1275128414677209094"
+  ),
+  screen_name = c(
+    "EmmaBostian",
+    "LittleBigData_",
+    "_ColinFay",
+    "annaquagli",
+    "_isabellamb",
+    "lapply",
+    "icymi_r",
+    "freakonometrics",
+    "cdhowe",
+    "tiledb",
+    "maartenzam",
+    "julieblancfr",
+    "appsilon",
+    "astroeringrand",
+    "riannone",
+    "BatutCyprien",
+    "W_R_Chase",
+    "DataVizSociety",
+    "GeoffreyDorne",
+    "timelyportfolio"
+  )
+)
+```
+
+## Reactable
+
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+```{r}
+df_tweets %>%
+  mutate(
+    embed_url = paste0(
+      "https://publish.twitter.com/oembed?url=https://twitter.com/",
+      tolower(screen_name),
+      "/status/",
+      status_id
+    )
+  ) %>%
+  select(embed_url) %>%
+  reactable(
+    filterable = TRUE,
+    defaultPageSize = 5,
+    columns = list(embed_url = colDef(
+      name = "Tweet",
+      cell = function(value) {
+        ret <- value %>%
+          httr::GET() %>%
+          httr::content()
+        ret$html
+      },
+      html = TRUE
+    ))
+  )
+```
